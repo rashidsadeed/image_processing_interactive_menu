@@ -80,6 +80,19 @@ class ColorMask():
         cmask = cv2.dilate(cmask, kernel)
         self.result = cmask  # Use the mask directly
 
+def meal_confirmation(food):
+    confirmatoin = None
+    while confirmatoin not in ["YES","NO"]:
+        confirmatoin = str(input(f"the item is {food}, do you confirm - YES/NO")).capitalize()
+        if confirmatoin == "YES":
+            order.add(food)
+        elif confirmatoin == "NO":
+            continue
+        else:
+            print("you have entered an invalid input, please respond in yes or no")
+
+
+
 soup = Meal("Soup", "Blue", "Circle", "Starters", 50)
 cheese_platter = Meal("cheese_platter", "Blue", "Circle","Starters", 150)
 garlic_bread = Meal("garlic_bread", "Blue", "Circle","Starters", 80)
@@ -97,22 +110,33 @@ tiramisu = Meal("Tirasum", "Green", "Pentagon", "Dessert", 80)
 cheesecake = Meal("cheesecake", "Green", "Pentagon", "Dessert", 75)
 
 
+####get customer info
+name = str(input("What is your name"))
+age = int(input("What is your name"))
+customer = Customer(name,age)
 
 
-
+#Check if the system recognizes a webcam
 s = 0
 if len(sys.argv) > 1:
     s = sys.argv[1]
 
+#Get live video feed from the webcam
 source = cv2.VideoCapture(s)
+
+#Create window for video 
 win_name = "Real-time color and shape recognition"
 cv2.namedWindow(win_name, cv2.WINDOW_NORMAL)
+
+#customer order set
+order = set([])
 
 while cv2.waitKey(1) != 27:
     has_frame, frame = source.read()
     if not has_frame:
         break
     
+    #create hue-saturation-value mask for color and gray mask for shape detection
     hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
     gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     kernel = np.ones((5, 5), "uint8")
@@ -137,7 +161,7 @@ while cv2.waitKey(1) != 27:
             if area > 300:
                 x, y, w, h = cv2.boundingRect(contour)
                 cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
-                cv2.putText(frame, f"{color_name.capitalize()} Color", (x, y), cv2.FONT_HERSHEY_SIMPLEX, 1.0,
+                cv2.putText(frame, str(color_name), (x, y), cv2.FONT_HERSHEY_SIMPLEX, 1.0,
                             (0, 255, 0))
 
                 # Shape detection within the contours
@@ -151,12 +175,84 @@ while cv2.waitKey(1) != 27:
                     shape = 'Quadrilateral'
                 elif len(approx) == 5:
                     shape = 'Pentagon'
-                elif len(approx) == 6:
-                    shape = 'Hexagon'
                 else:
                     shape = 'Circle'
 
                 cv2.putText(frame, shape, (x, y), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0))
+                order.add(str(f"{color_name}-{shape}"))
+
+                ########algorithm
+                if customer.get_age >= 18:#adult
+                    while len(order) < 5:
+                        print("Please place the menu objects infront of the camera")
+                        print("****Note: You have to select at least one main course and one starter!!****")
+                        print(f"you have {len(order)} items in the order list. you can orders {4-len(order)} items more")
+                    
+                        food = menu[color_name & shape]
+                        
+                        #exerts the selection of a main course and a starter meal
+                        if len(order) == 0 or len(order) == 1:
+                            if food.get_category not in ["Main Course","Starter"]:
+                                print("The first two items should be a starter and a main course meal, please select accordingly")
+                                food = None
+                        
+                        if food.get_color in [i.get_color for i in order]:
+                            print("you cannot have more than one meal from the same color, please select another meal instead")
+                            food = None
+
+                        #confirms the selection of a meal
+                        if food != None:                   
+                            meal_confirmation(food)
+                        
+                    #confirms the order of the customer
+                    if len(order) >= 2:
+                        order_confirm = None
+                        while order_confirm not in ("YES","No"):
+                            order_confirm = str(input(f"your order is {order.items()}, do you confirm? - YES/NO")).capitalize()
+                            if order_confirm == "YES":
+                                print(order)
+                                break
+                            elif order_confirm == "NO":
+                                continue
+                            else:
+                                print("Please respond in YES or NO")
+                        
+                        
+                else:#minor
+                     while len(order) < 4:
+                        print("Please place the menu objects infront of the camera")
+                        print("****Note: You have to select at least one main course and one starter!!****")
+                        print(f"you have {len(order)} items in the order list. you can orders {3-len(order)} items more")
+                        food = menu[color_name & shape]
+                        
+                        #exerts the selection of a main course and a starter meal
+                        if len(order) == 0 or len(order) == 1:
+                            if food.get_category not in ["Main Course","Starter"]:
+                                print("The first two items should be a starter and a main course meal, please select accordingly")
+                                food = None
+
+                        if food.get_color in [i.get_color for i in order]:
+                            print("you cannot have more than one meal from the same color, please select another meal instead")
+                            food = None
+
+                        #confirms the selection of a meal
+                        if food != None:                   
+                            meal_confirmation(food)
+                        
+                    #confirms the order of the customer
+                    if len(order) >= 2:
+                        order_confirm = None
+                        while order_confirm not in ("YES","No"):
+                            order_confirm = str(input(f"your order is {order.items()}, do you confirm? - YES/NO")).capitalize()
+                            if order_confirm == "YES":
+                                print(order)
+                                break
+                            elif order_confirm == "NO":
+                                continue
+                            else:
+                                print("Please respond in YES or NO")
+                            
+                                
 
     cv2.imshow(win_name, frame)
     if cv2.waitKey(1) & 0xFF == ord('q'):
