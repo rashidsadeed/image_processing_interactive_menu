@@ -14,11 +14,11 @@ menu = pd.DataFrame({"food":["Soup", "Cheese Platter", "Garlic Bread",
                                 "Color":["Blue","Blue","Blue","Yellow",
                                 "Yellow","Yellow", "Red","Red","Red",
                                 "Green","Green","Green"], 
-                                "Shape":["Circle","Circle","Circle",
-                                "Triangle", "Triangle","Triangle",
-                                "Quadrilateral","Quadrilateral",
-                                "Quadrilateral", "Pentagon","Pentagon",
-                                "Pentagon"]})
+                                "Geometry":["Square", "Triangle", "Pentagon","Square",
+                                "Triangle", "Pentagon","Square", "Triangle", "Pentagon",
+                                "Square", "Triangle", "Pentagon"], 
+                                 "price":[1,2,3,4,5,6,7,8,9,10,11,12]})
+
 
 class Customer:
     def __init__(self, name, age):
