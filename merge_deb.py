@@ -80,41 +80,39 @@ class ColorMask():
         cmask = cv2.dilate(cmask, kernel)
         self.result = cmask  # Use the mask directly
 
-def meal_confirmation(food):
-    confirmatoin = None
-    while confirmatoin not in ["YES","NO"]:
-        confirmatoin = str(input(f"the item is {food}, do you confirm - YES/NO")).capitalize()
-        if confirmatoin == "YES":
-            order.add(food)
-        elif confirmatoin == "NO":
-            continue
-        else:
-            print("you have entered an invalid input, please respond in yes or no")
+def matcher(color, shape, df):
+    if (color in df.Color.values) and (shape in df.Geometry.values):
+        name = df[(df.Geometry == shape) & (df.Color == color)].food.values[0]
+        if len(order) == 0 or len(order) == 1:
+            if df[df.food == name].Category not in ["Main Course", "Starter"]:
+                print("the first two items should be a starter and a main course meal, please select accordingly")
+                #***this BREAK function should be tested and tried***#
+                name = None
+        elif color in [i.get_color for i in order]:
+            print("you cannot have more than one meal from the same color, please select another meal instead")
+            name = None
+        
+        if name != None:
+            category = df[(df.Geometry == shape) & (df.Color == color)].Category.values[0]
+            price = df[(df.Geometry == shape) & (df.Color == color)].price.values[0]
+            #order confirmation
+            confirmatoin = str(input(f"the item is {food}, do you confirm - YES/NO")).capitalize()
+            if confirmation == "YES":
+                order.append(Meal(name, color, shape, category, price))
+            
+            elif confirmation == "NO":
+                continue
 
+            else:
+                print("you have entered an invalid input, please respond in yes or no")
 
-
-soup = Meal("Soup", "Blue", "Circle", "Starters", 50)
-cheese_platter = Meal("cheese_platter", "Blue", "Circle","Starters", 150)
-garlic_bread = Meal("garlic_bread", "Blue", "Circle","Starters", 80)
-
-crispy_chicken = ("Crispy_chicken", "Yellow", "Triangle","Snacks", 120)
-fish_chips = ("Fish & Chips", "Yellow", "Triangle","Snacks", 80)
-omlet = ("Omlet", "Yellow", "Triangle","Snacks", 75)
-
-meatballs = Meal("Meatballs", "Red", "Quadrilateral","Main Course", 150)
-casseroles = Meal("Casseroles", "Red", "Quadrilateral","Main Course", 120)
-fajitas = Meal("Fajitas", "Red", "Quadrilateral","Main Course", 100)
-
-souffle = Meal("Souffle", "Green", "Pentagon", "Dessert", 60)
-tiramisu = Meal("Tirasum", "Green", "Pentagon", "Dessert", 80)
-cheesecake = Meal("cheesecake", "Green", "Pentagon", "Dessert", 75)
-
+    else:
+        print("object shape and color not in menu. please select from the menu items")
 
 ####get customer info
 name = str(input("What is your name"))
 age = int(input("What is your name"))
 customer = Customer(name,age)
-
 
 #Check if the system recognizes a webcam
 s = 0
@@ -129,7 +127,7 @@ win_name = "Real-time color and shape recognition"
 cv2.namedWindow(win_name, cv2.WINDOW_NORMAL)
 
 #customer order set
-order = set([])
+order = []
 
 while cv2.waitKey(1) != 27:
     has_frame, frame = source.read()
@@ -175,11 +173,9 @@ while cv2.waitKey(1) != 27:
                     shape = 'Quadrilateral'
                 elif len(approx) == 5:
                     shape = 'Pentagon'
-                else:
-                    shape = 'Circle'
 
                 cv2.putText(frame, shape, (x, y), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0))
-                order.add(str(f"{color_name}-{shape}"))
+                order.append(str(f"{color_name}-{shape}"))
 
                 ########algorithm
                 if customer.get_age >= 18:#adult
@@ -187,27 +183,11 @@ while cv2.waitKey(1) != 27:
                         print("Please place the menu objects infront of the camera")
                         print("****Note: You have to select at least one main course and one starter!!****")
                         print(f"you have {len(order)} items in the order list. you can orders {4-len(order)} items more")
-                    
-                        food = menu[color_name & shape]
-                        
-                        #exerts the selection of a main course and a starter meal
-                        if len(order) == 0 or len(order) == 1:
-                            if food.get_category not in ["Main Course","Starter"]:
-                                print("The first two items should be a starter and a main course meal, please select accordingly")
-                                food = None
-                        
-                        if food.get_color in [i.get_color for i in order]:
-                            print("you cannot have more than one meal from the same color, please select another meal instead")
-                            food = None
 
-                        #confirms the selection of a meal
-                        if food != None:                   
-                            meal_confirmation(food)
+                        matcher(color_name, shape, menu)
                         
-                    #confirms the order of the customer
-                    if len(order) >= 2:
-                        order_confirm = None
-                        while order_confirm not in ("YES","No"):
+                        #confirms the order of the customer
+                        if len(order) >= 2:
                             order_confirm = str(input(f"your order is {order.items()}, do you confirm? - YES/NO")).capitalize()
                             if order_confirm == "YES":
                                 print(order)
@@ -217,43 +197,10 @@ while cv2.waitKey(1) != 27:
                             else:
                                 print("Please respond in YES or NO")
                         
-                        
-                else:#minor
-                     while len(order) < 4:
-                        print("Please place the menu objects infront of the camera")
-                        print("****Note: You have to select at least one main course and one starter!!****")
-                        print(f"you have {len(order)} items in the order list. you can orders {3-len(order)} items more")
-                        food = menu[color_name & shape]
-                        
-                        #exerts the selection of a main course and a starter meal
-                        if len(order) == 0 or len(order) == 1:
-                            if food.get_category not in ["Main Course","Starter"]:
-                                print("The first two items should be a starter and a main course meal, please select accordingly")
-                                food = None
-
-                        if food.get_color in [i.get_color for i in order]:
-                            print("you cannot have more than one meal from the same color, please select another meal instead")
-                            food = None
-
-                        #confirms the selection of a meal
-                        if food != None:                   
-                            meal_confirmation(food)
-                        
-                    #confirms the order of the customer
-                    if len(order) >= 2:
-                        order_confirm = None
-                        while order_confirm not in ("YES","No"):
-                            order_confirm = str(input(f"your order is {order.items()}, do you confirm? - YES/NO")).capitalize()
-                            if order_confirm == "YES":
-                                print(order)
-                                break
-                            elif order_confirm == "NO":
-                                continue
-                            else:
-                                print("Please respond in YES or NO")
-                            
+"""in this section, we had an <else> statement for the possibility that the customer is
+underage, in which case the number of items allowed in the order would change, but as of 
+the latest description of the project by the teacher, this section is no longer needed"""
                                 
-
     cv2.imshow(win_name, frame)
     if cv2.waitKey(1) & 0xFF == ord('q'):
         source.release()
