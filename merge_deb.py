@@ -14,11 +14,11 @@ menu = pd.DataFrame({"food":["Soup", "Cheese Platter", "Garlic Bread",
                                 "Color":["Blue","Blue","Blue","Yellow",
                                 "Yellow","Yellow", "Red","Red","Red",
                                 "Green","Green","Green"], 
-                                "Geometry":["Square", "Triangle", "Pentagon","Square",
-                                "Triangle", "Pentagon","Square", "Triangle", "Pentagon",
-                                "Square", "Triangle", "Pentagon"], 
-                                 "price":[1,2,3,4,5,6,7,8,9,10,11,12]})
-
+                                "Shape":["Circle","Circle","Circle",
+                                "Triangle", "Triangle","Triangle",
+                                "Quadrilateral","Quadrilateral",
+                                "Quadrilateral", "Pentagon","Pentagon",
+                                "Pentagon"]})
 
 class Customer:
     def __init__(self, name, age):
@@ -39,9 +39,9 @@ class Customer:
         return self.order
     
     def __str__(self):
-        return f"Name:{self.name},
+        return f"""Name:{self.name},
         age:{self.age},
-        order: {self.order}"
+        order: {self.order}"""
 
 class Meal:
     def __init__(self,name, color,shape, category, price):
@@ -83,7 +83,7 @@ class ColorMask():
 def matcher(color, shape, df):
     if (color in df.Color.values) and (shape in df.Geometry.values):
         name = df[(df.Geometry == shape) & (df.Color == color)].food.values[0]
-        if len(order) == 0 or len(order) == 1:
+        if len(order) <= 1:
             if df[df.food == name].Category not in ["Main Course", "Starter"]:
                 print("the first two items should be a starter and a main course meal, please select accordingly")
                 #***this BREAK function should be tested and tried***#
@@ -101,7 +101,8 @@ def matcher(color, shape, df):
                 order.append(Meal(name, color, shape, category, price))
             
             elif confirmation == "NO":
-                continue
+                print("select something else")
+                #continue
 
             else:
                 print("you have entered an invalid input, please respond in yes or no")
@@ -111,7 +112,7 @@ def matcher(color, shape, df):
 
 ####get customer info
 name = str(input("What is your name"))
-age = int(input("What is your name"))
+age = int(input("What is your age"))
 customer = Customer(name,age)
 
 #Check if the system recognizes a webcam
@@ -126,7 +127,7 @@ source = cv2.VideoCapture(s)
 win_name = "Real-time color and shape recognition"
 cv2.namedWindow(win_name, cv2.WINDOW_NORMAL)
 
-#customer order set
+#customer order
 order = []
 
 while cv2.waitKey(1) != 27:
@@ -164,7 +165,7 @@ while cv2.waitKey(1) != 27:
 
                 # Shape detection within the contours
                 epsilon = 0.03 * cv2.arcLength(contour, True)
-                approx = cv2.approxPolyDP(contour, epsilon, True)
+                approx = cv2.appqqqroxPolyDP(contour, epsilon, True)
 
                 shape = ""
                 if len(approx) == 3:
@@ -178,11 +179,11 @@ while cv2.waitKey(1) != 27:
                 order.append(str(f"{color_name}-{shape}"))
 
                 ########algorithm
-                if customer.get_age >= 18:#adult
+                if customer.get_age() >= 18:#adult
                     while len(order) < 5:
                         print("Please place the menu objects infront of the camera")
                         print("****Note: You have to select at least one main course and one starter!!****")
-                        print(f"you have {len(order)} items in the order list. you can orders {4-len(order)} items more")
+                        print(f"you have {len(order)} items in the order list. you can order {4-len(order)} items more")
 
                         matcher(color_name, shape, menu)
                         
@@ -191,9 +192,10 @@ while cv2.waitKey(1) != 27:
                             order_confirm = str(input(f"your order is {order.items()}, do you confirm? - YES/NO")).capitalize()
                             if order_confirm == "YES":
                                 print(order)
-                                break
+                                
                             elif order_confirm == "NO":
-                                continue
+                                print("please show your next item to the camera")
+                                #continue
                             else:
                                 print("Please respond in YES or NO")
                         
@@ -201,8 +203,8 @@ while cv2.waitKey(1) != 27:
 underage, in which case the number of items allowed in the order would change, but as of 
 the latest description of the project by the teacher, this section is no longer needed"""
                                 
-    cv2.imshow(win_name, frame)
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        source.release()
-        cv2.destroyAllWindows()
-        break
+cv2.imshow(win_name, frame)
+if cv2.waitKey(1) & 0xFF == ord('q'):
+    source.release()
+    cv2.destroyAllWindows()
+    #break
